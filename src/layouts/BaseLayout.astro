@@ -1,0 +1,337 @@
+---
+import "../styles/global.css";
+import "katex/dist/katex.min.css";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ko" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+
+    <script is:inline>
+      (() => {
+        const saved = localStorage.getItem("theme");
+        const theme = saved === "dark" ? "dark" : "light";
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <a class="brand en" href="/">{SITE_TITLE}</a>
+        <nav class="nav">
+          <a href="/posts">Posts</a>
+          <a href="/info">Info</a>
+          <a href="/cv.pdf" target="_blank" rel="noreferrer">CV</a>
+          <button
+            type="button"
+            class="icon-btn"
+            data-search-toggle
+            aria-label="검색 열기"
+            ><svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><circle cx="11" cy="11" r="7"></circle><line
+                x1="21"
+                y1="21"
+                x2="16.65"
+                y2="16.65"></line></svg
+            ></button
+          >
+          <button
+            type="button"
+            class="theme-switch"
+            data-theme-toggle
+            aria-label="다크 모드로 전환"
+          >
+            <span class="theme-switch-track">
+              <span class="theme-switch-icon sun"
+                ><svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  ><circle cx="12" cy="12" r="4"></circle><line
+                    x1="12"
+                    y1="2"
+                    x2="12"
+                    y2="5"></line><line x1="12" y1="19" x2="12" y2="22"
+                  ></line><line x1="4.93" y1="4.93" x2="6.76" y2="6.76"
+                  ></line><line x1="17.24" y1="17.24" x2="19.07" y2="19.07"
+                  ></line><line x1="2" y1="12" x2="5" y2="12"></line><line
+                    x1="19"
+                    y1="12"
+                    x2="22"
+                    y2="12"></line><line
+                    x1="4.93"
+                    y1="19.07"
+                    x2="6.76"
+                    y2="17.24"></line><line
+                    x1="17.24"
+                    y1="6.76"
+                    x2="19.07"
+                    y2="4.93"></line></svg
+                ></span
+              >
+              <span class="theme-switch-icon moon"
+                ><svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  stroke="none"
+                  ><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
+                  ></path></svg
+                ></span
+              >
+              <span class="theme-switch-thumb" aria-hidden="true"></span>
+            </span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <div class="search-modal" data-search-modal hidden>
+      <div class="search-modal-inner surface">
+        <div class="search-modal-head">
+          <strong class="en">Search</strong>
+          <button
+            type="button"
+            class="icon-btn"
+            data-search-close
+            aria-label="검색 닫기">✕</button
+          >
+        </div>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="검색어를 입력하세요"
+          data-search-input
+          autocomplete="off"
+        />
+        <ul class="search-results list-reset" data-search-results></ul>
+      </div>
+    </div>
+
+    <main>
+      <slot />
+    </main>
+    <script is:inline>
+      (() => {
+        const themeButton = document.querySelector("[data-theme-toggle]");
+        const searchButton = document.querySelector("[data-search-toggle]");
+        const searchCloseButton = document.querySelector("[data-search-close]");
+        const searchModal = document.querySelector("[data-search-modal]");
+
+        const syncButton = () => {
+          if (!themeButton) return;
+          const isDark = document.documentElement.dataset.theme === "dark";
+          themeButton.setAttribute("aria-pressed", String(isDark));
+          themeButton.setAttribute(
+            "aria-label",
+            isDark ? "라이트 모드로 전환" : "다크 모드로 전환",
+          );
+        };
+
+        themeButton?.addEventListener("click", () => {
+          const next =
+            document.documentElement.dataset.theme === "dark"
+              ? "light"
+              : "dark";
+          document.documentElement.dataset.theme = next;
+          localStorage.setItem("theme", next);
+          syncButton();
+        });
+
+        syncButton();
+
+        let fuseInstance = null;
+        let searchIndex = null;
+
+        const loadSearchIndex = async () => {
+          if (searchIndex) return;
+          try {
+            const res = await fetch("/search-index.json");
+            searchIndex = await res.json();
+            const Fuse = (
+              await import("https://cdn.jsdelivr.net/npm/fuse.js@7.1.0/dist/fuse.mjs")
+            ).default;
+            fuseInstance = new Fuse(searchIndex, {
+              keys: [
+                { name: "title", weight: 0.35 },
+                { name: "description", weight: 0.25 },
+                { name: "body", weight: 0.2 },
+                { name: "tags", weight: 0.1 },
+                { name: "category", weight: 0.1 },
+              ],
+              threshold: 0.35,
+              ignoreLocation: true,
+              includeMatches: true,
+              minMatchCharLength: 1,
+            });
+          } catch (e) {
+            console.error("검색 인덱스 로드 실패", e);
+          }
+        };
+
+        const searchInput = document.querySelector("[data-search-input]");
+        const searchResultsList = document.querySelector(
+          "[data-search-results]",
+        );
+
+        const renderResults = (query) => {
+          if (!searchResultsList) return;
+          if (!query || !fuseInstance) {
+            searchResultsList.innerHTML = "";
+            return;
+          }
+          const results = fuseInstance.search(query, { limit: 12 });
+          if (results.length === 0) {
+            searchResultsList.innerHTML =
+              '<li class="search-empty">검색 결과가 없습니다.</li>';
+            return;
+          }
+          searchResultsList.innerHTML = results
+            .map((r) => {
+              const item = r.item;
+              return `<li class="search-result-item"><a href="${item.url}"><strong>${item.title}</strong><span class="search-result-meta">${item.date} · ${item.category}</span><span class="search-result-desc">${item.description}</span></a></li>`;
+            })
+            .join("");
+        };
+
+        let debounceTimer = null;
+        searchInput?.addEventListener("input", (e) => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(
+            () => renderResults(e.target.value.trim()),
+            200,
+          );
+        });
+
+        const openSearch = async () => {
+          if (!searchModal) return;
+          await loadSearchIndex();
+          searchModal.hidden = false;
+          document.body.classList.add("search-open");
+          setTimeout(() => searchInput?.focus(), 50);
+        };
+
+        const closeSearch = () => {
+          if (!searchModal) return;
+          searchModal.hidden = true;
+          document.body.classList.remove("search-open");
+          if (searchInput) searchInput.value = "";
+          if (searchResultsList) searchResultsList.innerHTML = "";
+        };
+
+        searchButton?.addEventListener("click", openSearch);
+        searchCloseButton?.addEventListener("click", closeSearch);
+        searchModal?.addEventListener("click", (event) => {
+          if (event.target === searchModal) closeSearch();
+        });
+        window.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") closeSearch();
+        });
+
+        const setupCodeBlocks = () => {
+          const blocks = document.querySelectorAll("pre.astro-code");
+          blocks.forEach((pre) => {
+            if (pre.classList.contains("codeblock-pre")) return;
+
+            const code = pre.querySelector("code");
+            const className = code?.className || "";
+            const langFromClass = className.match(
+              /language-([a-z0-9-]+)/i,
+            )?.[1];
+            const lang = (
+              pre.getAttribute("data-language") ||
+              langFromClass ||
+              "text"
+            ).toUpperCase();
+
+            pre.classList.add("codeblock-pre");
+
+            const head = document.createElement("span");
+            head.className = "codeblock-head";
+
+            const langLabel = document.createElement("span");
+            langLabel.className = "codeblock-lang en";
+            langLabel.textContent = lang;
+
+            const copyButton = document.createElement("button");
+            copyButton.type = "button";
+            copyButton.className = "codeblock-copy";
+            copyButton.setAttribute("aria-label", "코드 복사");
+            copyButton.innerHTML =
+              '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="1.8" stroke="currentColor" stroke-width="1.8"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+
+            copyButton.addEventListener("click", async () => {
+              const text = pre.textContent || "";
+              try {
+                await navigator.clipboard.writeText(text);
+                copyButton.innerHTML =
+                  '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5 12.5 9.2 16.5 19 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                setTimeout(() => {
+                  copyButton.innerHTML =
+                    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="1.8" stroke="currentColor" stroke-width="1.8"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+                }, 900);
+              } catch {}
+            });
+
+            head.append(langLabel, copyButton);
+            pre.insertBefore(head, code || pre.firstChild);
+          });
+        };
+
+        const boot = () => {
+          setupCodeBlocks();
+          requestAnimationFrame(setupCodeBlocks);
+          setTimeout(setupCodeBlocks, 120);
+
+          const main = document.querySelector("main");
+          if (!main) return;
+
+          const observer = new MutationObserver(() => {
+            setupCodeBlocks();
+          });
+
+          observer.observe(main, {
+            childList: true,
+            subtree: true,
+          });
+        };
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", boot, { once: true });
+        } else {
+          boot();
+        }
+      })();
+    </script>
+  </body>
+</html>

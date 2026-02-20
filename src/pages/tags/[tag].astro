@@ -1,0 +1,60 @@
+---
+import PostsLayout from "../../layouts/PostsLayout.astro";
+import { SITE_TITLE } from "../../consts";
+import {
+  getPublishedPosts,
+  toPostItems,
+  buildCountMap,
+  formatDate,
+  slugifyTag,
+} from "../../scripts/content";
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  const items = toPostItems(posts);
+  const categories = buildCountMap(items.map((item) => item.category));
+  const tags = buildCountMap(items.flatMap((item) => item.tags));
+
+  return tags.map((tag) => ({
+    params: { tag: slugifyTag(tag.name) },
+    props: { selectedTag: tag.name, items, categories, tags },
+  }));
+}
+
+interface Props {
+  selectedTag: string;
+  items: ReturnType<typeof toPostItems>;
+  categories: { name: string; count: number }[];
+  tags: { name: string; count: number }[];
+}
+
+const { selectedTag, items, categories, tags } = Astro.props;
+const filtered = items.filter((item) => item.tags.includes(selectedTag));
+---
+
+<PostsLayout
+  title={`#${selectedTag} | ${SITE_TITLE}`}
+  description={`태그 ${selectedTag} 게시글`}
+  posts={items}
+  categories={categories}
+  tags={tags}
+>
+  <h1>#{selectedTag}</h1>
+  <p class="muted">총 {filtered.length}개의 게시글</p>
+
+  <ul class="list-reset" style="display:grid;gap:0.75rem;">
+    {
+      filtered.map((post) => (
+        <li class="surface">
+          <h2 style="margin:0 0 0.3rem;">
+            <a href={post.url}>{post.title}</a>
+          </h2>
+          <p class="muted" style="margin:0 0 0.45rem;">
+            {formatDate(post.date)} · {post.category}
+          </p>
+          <p style="margin:0;">{post.description}</p>
+        </li>
+      ))
+    }
+  </ul>
+</PostsLayout>

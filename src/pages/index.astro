@@ -1,17 +1,23 @@
 ---
-
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { SITE_TITLE } from "../consts";
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Astro</title>
-  </head>
-  <body>
-    <h1>My Astro Site</h1>
-  </body>
-</html>
+<BaseLayout title={`Home | ${SITE_TITLE}`} description="소개와 주요 링크">
+  <section class="surface">
+    <h1>안녕하세요, 블로그 작성자입니다.</h1>
+    <p>
+      이 공간은 <span class="en">Astro</span> 기반으로 작성한 개인 블로그입니다. 개발
+      메모, 실험, 기록을 빠르게 탐색할 수 있도록 미니멀한 구조로 설계했습니다.
+    </p>
+    <p class="muted">빠른 접근: CV, Posts, Info</p>
+    <ul
+      class="list-reset"
+      style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.2rem;"
+    >
+      <li><a href="/cv.pdf" target="_blank" rel="noreferrer">CV</a></li>
+      <li><a href="/posts">Posts</a></li>
+      <li><a href="/info">Info</a></li>
+    </ul>
+  </section>
+</BaseLayout>

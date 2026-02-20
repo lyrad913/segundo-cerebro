@@ -1,0 +1,86 @@
+{
+    "name": "Tiniri Light",
+    "type": "light",
+    "semanticHighlighting": false,
+    "colors": {
+        "editor.background": "#FDFCFC",
+        "editor.foreground": "#333231",
+        "editor.selectionBackground": "#538A8A33",
+        "editor.lineHighlightBackground": "#FDFCFC",
+        "editorCursor.foreground": "#AD514CCC"
+    },
+    "tokenColors": [
+        {
+            "scope": [
+                "comment"
+            ],
+            "settings": {
+                "foreground": "#80797499"
+            }
+        },
+        {
+            "scope": [
+                "punctuation",
+                "keyword.operator"
+            ],
+            "settings": {
+                "foreground": "#807974BB"
+            }
+        },
+        {
+            "scope": [
+                "keyword",
+                "storage",
+                "variable.language"
+            ],
+            "settings": {
+                "foreground": "#807974"
+            }
+        },
+        {
+            "scope": [
+                "constant",
+                "string"
+            ],
+            "settings": {
+                "foreground": "#333231"
+            }
+        },
+        {
+            "scope": [
+                "entity.name.function",
+                "variable",
+                "variable.other.property"
+            ],
+            "settings": {
+                "foreground": "#AD514C"
+            }
+        },
+        {
+            "scope": [
+                "support.function",
+                "variable.parameter",
+                "entity.other"
+            ],
+            "settings": {
+                "foreground": "#356B94"
+            }
+        },
+        {
+            "scope": [
+                "quote"
+            ],
+            "settings": {
+                "foreground": "#538A8A"
+            }
+        },
+        {
+            "scope": [
+                "invalid"
+            ],
+            "settings": {
+                "foreground": "#E59793"
+            }
+        }
+    ]
+}

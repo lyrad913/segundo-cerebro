@@ -1,0 +1,86 @@
+{
+    "name": "Tiniri Dark",
+    "type": "dark",
+    "semanticHighlighting": false,
+    "colors": {
+        "editor.background": "#1F2123",
+        "editor.foreground": "#DBD7D1",
+        "editor.selectionBackground": "#314F5299",
+        "editor.lineHighlightBackground": "#25272B",
+        "editorCursor.foreground": "#AD514CCC"
+    },
+    "tokenColors": [
+        {
+            "scope": [
+                "comment"
+            ],
+            "settings": {
+                "foreground": "#4E535F"
+            }
+        },
+        {
+            "scope": [
+                "punctuation",
+                "keyword.operator"
+            ],
+            "settings": {
+                "foreground": "#938A80BB"
+            }
+        },
+        {
+            "scope": [
+                "keyword",
+                "storage",
+                "variable.language"
+            ],
+            "settings": {
+                "foreground": "#938A80"
+            }
+        },
+        {
+            "scope": [
+                "constant",
+                "string"
+            ],
+            "settings": {
+                "foreground": "#DBD7D1"
+            }
+        },
+        {
+            "scope": [
+                "entity.name.function",
+                "variable",
+                "variable.other.property"
+            ],
+            "settings": {
+                "foreground": "#F5A571"
+            }
+        },
+        {
+            "scope": [
+                "support.function",
+                "variable.parameter",
+                "entity.other"
+            ],
+            "settings": {
+                "foreground": "#74A1AA"
+            }
+        },
+        {
+            "scope": [
+                "quote"
+            ],
+            "settings": {
+                "foreground": "#538A8A"
+            }
+        },
+        {
+            "scope": [
+                "invalid"
+            ],
+            "settings": {
+                "foreground": "#E59793"
+            }
+        }
+    ]
+}

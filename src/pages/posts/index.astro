@@ -1,0 +1,41 @@
+---
+import PostsLayout from "../../layouts/PostsLayout.astro";
+import { SITE_TITLE } from "../../consts";
+import {
+  getPublishedPosts,
+  toPostItems,
+  buildCountMap,
+  formatDate,
+} from "../../scripts/content";
+
+const posts = await getPublishedPosts();
+const items = toPostItems(posts);
+const categories = buildCountMap(items.map((item) => item.category));
+const tags = buildCountMap(items.flatMap((item) => item.tags));
+---
+
+<PostsLayout
+  title={`Posts | ${SITE_TITLE}`}
+  description="모든 게시글"
+  posts={items}
+  categories={categories}
+  tags={tags}
+>
+  <h1>Posts</h1>
+  <p class="muted">최신순으로 정렬된 게시글 목록입니다.</p>
+  <ul class="list-reset" style="display:grid;gap:0.75rem;">
+    {
+      items.map((post) => (
+        <li class="surface">
+          <h2 style="margin:0 0 0.3rem;">
+            <a href={post.url}>{post.title}</a>
+          </h2>
+          <p class="muted" style="margin:0 0 0.45rem;">
+            {formatDate(post.date)} · {post.category}
+          </p>
+          <p style="margin:0;">{post.description}</p>
+        </li>
+      ))
+    }
+  </ul>
+</PostsLayout>

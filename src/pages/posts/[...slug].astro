@@ -1,0 +1,51 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import PostsLayout from "../../layouts/PostsLayout.astro";
+import { SITE_TITLE } from "../../consts";
+import {
+  getPublishedPosts,
+  toPostItems,
+  buildCountMap,
+  formatDate,
+} from "../../scripts/content";
+
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  const items = toPostItems(posts);
+  const categories = buildCountMap(items.map((item) => item.category));
+  const tags = buildCountMap(items.flatMap((item) => item.tags));
+
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post, items, categories, tags },
+  }));
+}
+
+interface Props {
+  post: CollectionEntry<"posts">;
+  items: ReturnType<typeof toPostItems>;
+  categories: { name: string; count: number }[];
+  tags: { name: string; count: number }[];
+}
+
+const { post, items, categories, tags } = Astro.props;
+const { Content, headings } = await render(post);
+---
+
+<PostsLayout
+  title={`${post.data.title} | ${SITE_TITLE}`}
+  description={post.data.description}
+  posts={items}
+  categories={categories}
+  tags={tags}
+  currentPostId={post.id}
+  headings={headings}
+>
+  <header>
+    <h1>{post.data.title}</h1>
+    <p class="muted">{formatDate(post.data.date)} · {post.data.category}</p>
+    <p>{post.data.description}</p>
+  </header>
+
+  <Content />
+</PostsLayout>

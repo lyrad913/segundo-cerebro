@@ -1,0 +1,35 @@
+<section class="surface search-wrap" aria-label="게시글 검색">
+  <h2 class="search-title en">⌕ Search</h2>
+  <div id="search"></div>
+</section>
+
+<script is:inline>
+  (() => {
+    const init = async () => {
+      try {
+        const res = await fetch("/pagefind/pagefind-entry.json", {
+          method: "HEAD",
+        });
+        if (!res.ok) return;
+        const mod = await import("/pagefind/pagefind-ui.js");
+        const PagefindUI = mod.PagefindUI;
+        new PagefindUI({
+          element: "#search",
+          showSubResults: true,
+          translations: {
+            placeholder: "게시글 검색",
+          },
+        });
+      } catch {}
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init, { once: true });
+      return;
+    }
+
+    init();
+  })();
+</script>
+
+<link rel="stylesheet" href="/pagefind/pagefind-ui.css" />

@@ -1,0 +1,174 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import "../styles/posts.css";
+import { slugifyTag } from "../scripts/content";
+
+interface LinkItem {
+  name: string;
+  count: number;
+}
+
+interface PostItem {
+  id: string;
+  title: string;
+  category: string;
+  tags: string[];
+  date: Date;
+  description: string;
+  url: string;
+}
+
+interface TocHeading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  title: string;
+  description?: string;
+  posts: PostItem[];
+  categories: LinkItem[];
+  tags: LinkItem[];
+  currentPostId?: string;
+  headings?: TocHeading[];
+}
+
+const {
+  title,
+  description = "Posts",
+  posts,
+  categories,
+  tags,
+  currentPostId,
+  headings = [],
+} = Astro.props;
+
+const grouped = categories.map((cat) => ({
+  ...cat,
+  posts: posts.filter((post) => post.category === cat.name),
+}));
+
+const showToc = headings.length > 0;
+
+// Build hierarchical ToC tree: group h3s under their preceding h2
+interface TocNode {
+  depth: number;
+  slug: string;
+  text: string;
+  children: TocHeading[];
+}
+const tocTree: TocNode[] = [];
+headings
+  .filter((h) => h.depth <= 3)
+  .forEach((h) => {
+    if (h.depth === 2) {
+      tocTree.push({ ...h, children: [] });
+    } else if (h.depth === 3 && tocTree.length > 0) {
+      tocTree[tocTree.length - 1].children.push(h);
+    }
+  });
+---
+
+<BaseLayout title={title} description={description}>
+  <section class:list={{ "posts-grid": true, "no-right": !showToc }}>
+    <aside class="left-panel surface" data-panel="left">
+      <section>
+        <h2 class="panel-title en">Posts</h2>
+        <ul class="list-reset tree-root">
+          {
+            grouped.map((group) => (
+              <li>
+                <details open>
+                  <summary>
+                    <span>{group.name}</span>
+                    <span class="muted">{group.count}</span>
+                  </summary>
+                  <ul class="list-reset tree-children">
+                    {group.posts.map((post) => (
+                      <li>
+                        <a
+                          href={post.url}
+                          class:list={{
+                            active: post.id === currentPostId,
+                          }}
+                        >
+                          {post.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="panel-title en">Categories</h2>
+        <ul class="list-reset chips">
+          {
+            categories.map((cat) => (
+              <li>
+                {cat.name} <span class="muted">({cat.count})</span>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="panel-title en">Tags</h2>
+        <ul class="list-reset chips">
+          {
+            tags.map((tag) => (
+              <li>
+                <a href={`/tags/${slugifyTag(tag.name)}/`}>#{tag.name}</a>
+                <span class="muted"> ({tag.count})</span>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </aside>
+
+    <article class="content-panel surface" data-panel="content">
+      <slot />
+    </article>
+
+    {
+      showToc && (
+        <aside class="right-panel surface" data-panel="right">
+          <h2 class="panel-title en">ToC</h2>
+          <ul class="list-reset toc-tree">
+            {tocTree.map((h2, i) => (
+              <li
+                class={`toc-branch ${i === tocTree.length - 1 ? "last" : ""}`}
+              >
+                {h2.children.length > 0 ? (
+                  <details open>
+                    <summary>
+                      <a href={`#${h2.slug}`}>{h2.text}</a>
+                    </summary>
+                    <ul class="list-reset toc-children">
+                      {h2.children.map((h3, j) => (
+                        <li
+                          class={`toc-leaf ${j === h2.children.length - 1 ? "last" : ""}`}
+                        >
+                          <a href={`#${h3.slug}`}>{h3.text}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                ) : (
+                  <a href={`#${h2.slug}`}>{h2.text}</a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )
+    }
+  </section>
+</BaseLayout>
