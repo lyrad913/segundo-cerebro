@@ -9,6 +9,7 @@ interface Props {
 }
 
 const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
+const base = import.meta.env.BASE_URL;
 ---
 
 <!doctype html>
@@ -18,8 +19,9 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
+    <meta name="astro-base" content={base} />
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}/favicon.svg`} />
+    <link rel="icon" href={`${import.meta.env.BASE_URL}/favicon.ico`} />
 
     <script is:inline>
       (() => {
@@ -33,11 +35,11 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
   <body>
     <header class="header">
       <div class="header-inner">
-        <a class="brand en" href="/">{SITE_TITLE}</a>
+        <a class="brand en" href={import.meta.env.BASE_URL}>{SITE_TITLE}</a>
         <nav class="nav">
-          <a href="/posts">Posts</a>
-          <a href="/info">Info</a>
-          <a href="/cv.pdf" target="_blank" rel="noreferrer">CV</a>
+          <a href={`${import.meta.env.BASE_URL}/posts`}>Posts</a>
+          <a href={`${import.meta.env.BASE_URL}/info`}>Info</a>
+          <a href={`${import.meta.env.BASE_URL}/cv.pdf`} target="_blank" rel="noreferrer">CV</a>
           <button
             type="button"
             class="icon-btn"
@@ -141,7 +143,7 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
     <main>
       <slot />
     </main>
-    <script is:inline>
+    <script is:inline define:vars={{ base }}>
       (() => {
         const themeButton = document.querySelector("[data-theme-toggle]");
         const searchButton = document.querySelector("[data-search-toggle]");
@@ -176,7 +178,7 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
         const loadSearchIndex = async () => {
           if (searchIndex) return;
           try {
-            const res = await fetch("/search-index.json");
+            const res = await fetch(base + "/search-index.json");
             searchIndex = await res.json();
             const Fuse = (
               await import("https://cdn.jsdelivr.net/npm/fuse.js@7.1.0/dist/fuse.mjs")

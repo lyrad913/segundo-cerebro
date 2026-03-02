@@ -12,7 +12,12 @@ import tiniriDark from './src/styles/shiki/tiniri-dark.json' with { type: 'json'
 // https://astro.build/config
 export default defineConfig({
 	markdown: {
-		remarkPlugins: [remarkWikilinks, remarkEmbeds, remarkMarkHighlight, remarkMath],
+		remarkPlugins: [
+			[remarkWikilinks, { base: '/segundo-cerebro' }],
+			[remarkEmbeds, { base: '/segundo-cerebro' }],
+			remarkMarkHighlight,
+			remarkMath
+		],
 		rehypePlugins: [rehypeKatex, rehypeCallouts],
 		shikiConfig: {
 			themes: {

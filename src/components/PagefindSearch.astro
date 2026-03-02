@@ -5,13 +5,20 @@
 
 <script is:inline>
   (() => {
+    const base = document.querySelector('meta[name="astro-base"]')?.content || '';
+    // Dynamically inject pagefind CSS
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = base + '/pagefind/pagefind-ui.css';
+    document.head.appendChild(link);
+
     const init = async () => {
       try {
-        const res = await fetch("/pagefind/pagefind-entry.json", {
+        const res = await fetch(base + "/pagefind/pagefind-entry.json", {
           method: "HEAD",
         });
         if (!res.ok) return;
-        const mod = await import("/pagefind/pagefind-ui.js");
+        const mod = await import(base + "/pagefind/pagefind-ui.js");
         const PagefindUI = mod.PagefindUI;
         new PagefindUI({
           element: "#search",
@@ -31,5 +38,3 @@
     init();
   })();
 </script>
-
-<link rel="stylesheet" href="/pagefind/pagefind-ui.css" />

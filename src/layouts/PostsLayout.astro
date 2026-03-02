@@ -128,7 +128,7 @@ headings
           {
             tags.map((tag) => (
               <li>
-                <a href={`/tags/${slugifyTag(tag.name)}/`}>#{tag.name}</a>
+                <a href={`${import.meta.env.BASE_URL}/tags/${slugifyTag(tag.name)}/`}>#{tag.name}</a>
                 <span class="muted"> ({tag.count})</span>
               </li>
             ))

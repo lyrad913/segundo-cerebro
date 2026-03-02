@@ -41,6 +41,7 @@ function buildFileMap(postsDir) {
 
 export default function remarkWikilinks(options = {}) {
   const postsDir = options.postsDir || './src/content/posts';
+  const base = options.base ? options.base.replace(/\/$/, '') + '/' : '/';
   const fileMap = buildFileMap(postsDir);
 
   return (tree) => {
@@ -74,7 +75,7 @@ export default function remarkWikilinks(options = {}) {
 
         // Resolve the target to a post ID
         const resolved = fileMap.get(target.toLowerCase());
-        const href = resolved ? `/posts/${resolved}/` : '#';
+        const href = resolved ? `${base}posts/${resolved}/` : '#';
         const classes = resolved ? ['wiki-link'] : ['wiki-link', 'new'];
 
         newChildren.push({

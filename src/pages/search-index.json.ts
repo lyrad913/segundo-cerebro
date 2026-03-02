@@ -11,7 +11,7 @@ export const GET: APIRoute = async () => {
     category: post.data.category,
     tags: post.data.tags,
     date: post.data.date.toISOString().slice(0, 10),
-    url: `/posts/${post.id}/`,
+    url: `${import.meta.env.BASE_URL}/posts/${post.id}/`,
     body: post.body
       ?.replace(/^---[\s\S]*?---/, '')       // frontmatter
       .replace(/```[\s\S]*?```/g, '')        // code blocks

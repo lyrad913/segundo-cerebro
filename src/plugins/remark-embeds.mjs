@@ -122,6 +122,7 @@ function isImage(str) {
 
 export default function remarkEmbeds(options = {}) {
   const postsDir = options.postsDir || './src/content/posts';
+  const base = options.base ? options.base.replace(/\/$/, '') + '/' : '/';
   const fileMap = buildFileMap(postsDir);
 
   // Collect all web URLs for batch fetching
@@ -191,7 +192,7 @@ export default function remarkEmbeds(options = {}) {
           const resolved = fileMap.get(target.toLowerCase());
           if (resolved) {
             const title = extractTitle(postsDir, resolved.id) || resolved.title;
-            newChildren.push(buildInternalCard(resolved.id, title));
+            newChildren.push(buildInternalCard(resolved.id, title, base));
           } else {
             // Unresolved embed → show as broken embed
             newChildren.push({
@@ -233,10 +234,10 @@ function buildWebLinkCard(url, ogp) {
   };
 }
 
-function buildInternalCard(postId, title) {
+function buildInternalCard(postId, title, base) {
   return {
     type: 'html',
-    value: `<a href="/posts/${escapeHtml(postId)}/" class="embed-card embed-card-internal">
+    value: `<a href="${base}posts/${escapeHtml(postId)}/" class="embed-card embed-card-internal">
   <span class="embed-card-icon">📄</span>
   <span class="embed-card-title">${escapeHtml(title)}</span>
 </a>`

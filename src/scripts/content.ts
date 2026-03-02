@@ -34,7 +34,7 @@ export function toPostItems(posts: PostEntry[]): PostItem[] {
     tags: post.data.tags,
     date: post.data.date,
     description: post.data.description,
-    url: `/posts/${post.id}/`
+    url: `${import.meta.env.BASE_URL}/posts/${post.id}/`
   }));
 }
 
