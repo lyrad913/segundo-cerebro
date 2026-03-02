@@ -20,5 +20,7 @@ export default defineConfig({
 				dark: tiniriDark
 			}
 		}
-	}
+	},
+    site: "https://lyrad913.github.io",
+    base: "segundo-cerebro"
 });
