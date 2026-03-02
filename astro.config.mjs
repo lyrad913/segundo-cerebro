@@ -22,5 +22,5 @@ export default defineConfig({
 		}
 	},
     site: "https://lyrad913.github.io",
-    base: "segundo-cerebro"
+    base: "/segundo-cerebro"
 });
