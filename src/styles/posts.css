@@ -53,6 +53,17 @@
     margin-top: 1rem;
 }
 
+/* Graph view */
+.graph-container {
+    width: 100%;
+}
+
+.graph-container canvas {
+    width: 100%;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--accent-stone) 4%, var(--surface));
+}
+
 .tree-root {
     display: flex;
     flex-direction: column;

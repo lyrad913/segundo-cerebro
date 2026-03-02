@@ -1,0 +1,358 @@
+---
+/**
+ * GraphView: force-directed graph of posts connected by shared tags.
+ * Pure vanilla JS + Canvas — no external dependencies.
+ */
+interface PostNode {
+  id: string;
+  title: string;
+  tags: string[];
+  url: string;
+}
+
+interface Props {
+  posts: PostNode[];
+  currentPostId?: string;
+}
+
+const { posts, currentPostId } = Astro.props;
+
+// Build edges: posts sharing at least one tag
+interface Edge {
+  source: number;
+  target: number;
+  weight: number; // number of shared tags
+}
+
+const edges: Edge[] = [];
+for (let i = 0; i < posts.length; i++) {
+  for (let j = i + 1; j < posts.length; j++) {
+    const shared = posts[i].tags.filter((t) => posts[j].tags.includes(t));
+    if (shared.length > 0) {
+      edges.push({ source: i, target: j, weight: shared.length });
+    }
+  }
+}
+
+// Serialize data for client-side script
+const graphData = JSON.stringify({
+  nodes: posts.map((p, i) => ({
+    id: p.id,
+    title: p.title,
+    url: p.url,
+    isCurrent: p.id === currentPostId,
+    index: i,
+  })),
+  edges: edges.map((e) => ({
+    source: e.source,
+    target: e.target,
+    weight: e.weight,
+  })),
+});
+---
+
+<div class="graph-container">
+  <h2 class="panel-title en">Graph</h2>
+  <canvas id="graph-canvas"></canvas>
+</div>
+
+<script is:inline define:vars={{ graphData }}>
+  (function () {
+    const data = JSON.parse(graphData);
+    const canvas = document.getElementById("graph-canvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+
+    // Responsive sizing
+    function resize() {
+      const container = canvas.parentElement;
+      const w = container.clientWidth;
+      const h = Math.max(w, 200);
+      canvas.width = w * devicePixelRatio;
+      canvas.height = h * devicePixelRatio;
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      return { w, h };
+    }
+
+    let { w, h } = resize();
+
+    // Theme colors
+    function getColors() {
+      const style = getComputedStyle(document.documentElement);
+      return {
+        node: style.getPropertyValue("--accent-teal").trim() || "#538a8a",
+        nodeCurrent:
+          style.getPropertyValue("--accent-warm").trim() || "#ad514c",
+        edge: style.getPropertyValue("--accent-stone").trim() || "#807974",
+        text: style.getPropertyValue("--text").trim() || "#333",
+        hover: style.getPropertyValue("--accent-orange").trim() || "#d28450",
+        bg: "transparent",
+      };
+    }
+
+    let colors = getColors();
+
+    // Initialize node positions randomly around center
+    const nodes = data.nodes.map((n, i) => ({
+      ...n,
+      x: w / 2 + (Math.random() - 0.5) * w * 0.6,
+      y: h / 2 + (Math.random() - 0.5) * h * 0.6,
+      vx: 0,
+      vy: 0,
+      radius: n.isCurrent ? 6 : 4,
+    }));
+    const edges = data.edges;
+
+    // Force simulation parameters
+    const REPULSION = 1200;
+    const ATTRACTION = 0.008;
+    const CENTER_GRAVITY = 0.02;
+    const DAMPING = 0.85;
+    const REST_LENGTH = 70;
+    const MIN_DIST = 20;
+
+    let hoveredNode = null;
+    let isDragging = false;
+    let dragNode = null;
+    let animating = true;
+    let tickCount = 0;
+    const MAX_TICKS = 300;
+
+    function simulate() {
+      for (const node of nodes) {
+        node.vx = 0;
+        node.vy = 0;
+      }
+
+      // Repulsion between all pairs
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          let dx = nodes[j].x - nodes[i].x;
+          let dy = nodes[j].y - nodes[i].y;
+          let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          if (dist < MIN_DIST) dist = MIN_DIST;
+          const force = REPULSION / (dist * dist);
+          const fx = (dx / dist) * force;
+          const fy = (dy / dist) * force;
+          nodes[i].vx -= fx;
+          nodes[i].vy -= fy;
+          nodes[j].vx += fx;
+          nodes[j].vy += fy;
+        }
+      }
+
+      // Attraction along edges
+      for (const edge of edges) {
+        const a = nodes[edge.source];
+        const b = nodes[edge.target];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const force = (dist - REST_LENGTH) * ATTRACTION * edge.weight;
+        const fx = (dx / dist) * force;
+        const fy = (dy / dist) * force;
+        a.vx += fx;
+        a.vy += fy;
+        b.vx -= fx;
+        b.vy -= fy;
+      }
+
+      // Center gravity
+      for (const node of nodes) {
+        node.vx += (w / 2 - node.x) * CENTER_GRAVITY;
+        node.vy += (h / 2 - node.y) * CENTER_GRAVITY;
+      }
+
+      // Apply velocities with damping
+      for (const node of nodes) {
+        if (isDragging && node === dragNode) continue;
+        node.x += node.vx * DAMPING;
+        node.y += node.vy * DAMPING;
+        // Keep within bounds
+        node.x = Math.max(
+          node.radius + 4,
+          Math.min(w - node.radius - 4, node.x),
+        );
+        node.y = Math.max(
+          node.radius + 4,
+          Math.min(h - node.radius - 4, node.y),
+        );
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, w, h);
+
+      // Draw edges
+      ctx.strokeStyle = colors.edge + "40";
+      ctx.lineWidth = 1;
+      for (const edge of edges) {
+        const a = nodes[edge.source];
+        const b = nodes[edge.target];
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+      }
+
+      // Draw nodes
+      for (const node of nodes) {
+        const isHovered = node === hoveredNode;
+        ctx.beginPath();
+        ctx.arc(
+          node.x,
+          node.y,
+          isHovered ? node.radius + 2 : node.radius,
+          0,
+          Math.PI * 2,
+        );
+
+        if (node.isCurrent) {
+          ctx.fillStyle = colors.nodeCurrent;
+        } else if (isHovered) {
+          ctx.fillStyle = colors.hover;
+        } else {
+          ctx.fillStyle = colors.node;
+        }
+        ctx.fill();
+
+        // Node border
+        ctx.strokeStyle = ctx.fillStyle;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      // Draw hovered node label
+      if (hoveredNode) {
+        ctx.font = "11px system-ui, -apple-system, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillStyle = colors.text;
+        ctx.fillText(
+          hoveredNode.title,
+          hoveredNode.x,
+          hoveredNode.y - hoveredNode.radius - 6,
+        );
+      }
+
+      // Draw labels for all nodes if few enough
+      if (nodes.length <= 12) {
+        ctx.font = "10px system-ui, -apple-system, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillStyle = colors.text + "aa";
+        for (const node of nodes) {
+          if (node === hoveredNode) continue;
+          const label =
+            node.title.length > 18 ? node.title.slice(0, 16) + "…" : node.title;
+          ctx.fillText(label, node.x, node.y + node.radius + 13);
+        }
+      }
+    }
+
+    function tick() {
+      if (!animating) return;
+      simulate();
+      draw();
+      tickCount++;
+      if (tickCount < MAX_TICKS || isDragging) {
+        requestAnimationFrame(tick);
+      }
+    }
+
+    // Handle mouse/touch interactions
+    function getNodeAt(x, y) {
+      for (let i = nodes.length - 1; i >= 0; i--) {
+        const n = nodes[i];
+        const dx = x - n.x;
+        const dy = y - n.y;
+        if (dx * dx + dy * dy < (n.radius + 6) * (n.radius + 6)) return n;
+      }
+      return null;
+    }
+
+    function getCanvasPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    canvas.addEventListener("mousemove", (e) => {
+      const pos = getCanvasPos(e);
+      const node = getNodeAt(pos.x, pos.y);
+      hoveredNode = node;
+      canvas.style.cursor = node ? "pointer" : "default";
+
+      if (isDragging && dragNode) {
+        dragNode.x = pos.x;
+        dragNode.y = pos.y;
+      }
+      if (!animating || tickCount >= MAX_TICKS) {
+        draw();
+      }
+    });
+
+    canvas.addEventListener("mousedown", (e) => {
+      const pos = getCanvasPos(e);
+      const node = getNodeAt(pos.x, pos.y);
+      if (node) {
+        isDragging = true;
+        dragNode = node;
+        tickCount = 0;
+        animating = true;
+        tick();
+      }
+    });
+
+    canvas.addEventListener("mouseup", () => {
+      if (isDragging && dragNode && !wasDragged()) {
+        window.location.href = dragNode.url;
+      }
+      isDragging = false;
+      dragNode = null;
+    });
+
+    canvas.addEventListener("click", (e) => {
+      const pos = getCanvasPos(e);
+      const node = getNodeAt(pos.x, pos.y);
+      if (node && !isDragging) {
+        window.location.href = node.url;
+      }
+    });
+
+    let dragStartPos = null;
+    function wasDragged() {
+      return false; // Simplified — click always navigates
+    }
+
+    // Respond to theme changes
+    const observer = new MutationObserver(() => {
+      colors = getColors();
+      draw();
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    // Respond to resize
+    window.addEventListener("resize", () => {
+      ({ w, h } = resize());
+      tickCount = 0;
+      animating = true;
+      tick();
+    });
+
+    // Start
+    if (nodes.length > 0) {
+      tick();
+    } else {
+      // Draw empty state
+      ctx.font = "11px system-ui, -apple-system, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillStyle = colors.text + "66";
+      ctx.fillText("포스트가 추가되면 그래프가 표시됩니다", w / 2, h / 2);
+    }
+  })();
+</script>

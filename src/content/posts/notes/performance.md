@@ -22,7 +22,10 @@ draft: false
 
 - 테마 토글 상태 저장
 - 검색 인덱스 정적 생성
-- 불필요한 번들 로드 방지
+- 불필요한 ==번들== 로드 방지
+
+[[getting-started]]
+![[getting-started]]
 
 0123456789
 
@@ -68,11 +71,12 @@ print("Hello World")
 
 #### Callout Test
 
-> [!NOTE]
+> [!NOTE]-  
 > 기본 검색은 Pagefind로 빌드 타임에 인덱싱됩니다.
 
-> [!TIP]
+> [!TIP]+
 > `npm run build` 후 `npm run preview`로 검색 기능을 테스트할 수 있습니다.
 
-> [!WARNING]
+> [!WARNING] 경고
 > 클라이언트 JS 번들 크기가 50KB를 넘지 않도록 주의하세요.
+

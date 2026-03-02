@@ -597,3 +597,257 @@ blockquote p {
     content: 'Caution';
     color: var(--accent-warm);
 }
+
+/* ================================================================
+   Collapsible callouts (<details>)
+   ================================================================ */
+details.callout {
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    border-left: 3px solid var(--accent-blue);
+    background: color-mix(in srgb, var(--accent-blue) 6%, var(--bg));
+    margin: 1rem 0;
+}
+
+details.callout::before {
+    display: none;
+}
+
+details.callout>summary.callout-title {
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-family: 'Libertinus Sans', sans-serif;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+details.callout>summary.callout-title::before {
+    content: '▸';
+    font-size: 0.7rem;
+    transition: transform 0.15s;
+}
+
+details.callout[open]>summary.callout-title::before {
+    transform: rotate(90deg);
+}
+
+details.callout>summary.callout-title::-webkit-details-marker {
+    display: none;
+}
+
+details.callout>summary.callout-title::marker {
+    display: none;
+    content: '';
+}
+
+details.callout-note>summary.callout-title {
+    color: var(--accent-blue);
+}
+
+details.callout-tip>summary.callout-title {
+    color: var(--accent-teal);
+}
+
+details.callout-important>summary.callout-title {
+    color: var(--accent-orange);
+}
+
+details.callout-warning>summary.callout-title {
+    color: var(--accent-gold);
+}
+
+details.callout-caution>summary.callout-title {
+    color: var(--accent-warm);
+}
+
+details.callout-note {
+    border-left-color: var(--accent-blue);
+    background: color-mix(in srgb, var(--accent-blue) 6%, var(--bg));
+}
+
+details.callout-tip {
+    border-left-color: var(--accent-teal);
+    background: color-mix(in srgb, var(--accent-teal) 6%, var(--bg));
+}
+
+details.callout-important {
+    border-left-color: var(--accent-orange);
+    background: color-mix(in srgb, var(--accent-orange) 6%, var(--bg));
+}
+
+details.callout-warning {
+    border-left-color: var(--accent-gold);
+    background: color-mix(in srgb, var(--accent-gold) 6%, var(--bg));
+}
+
+details.callout-caution {
+    border-left-color: var(--accent-warm);
+    background: color-mix(in srgb, var(--accent-warm) 6%, var(--bg));
+}
+
+/* Custom-titled static callouts */
+.callout[data-callout-title]::before {
+    content: attr(data-callout-title);
+}
+
+/* ================================================================
+   Highlight (==text== via remark-mark-highlight)
+   ================================================================ */
+mark {
+    background: color-mix(in srgb, var(--accent-gold) 30%, var(--bg));
+    color: var(--text);
+    padding: 0.05rem 0.2rem;
+    border-radius: 3px;
+}
+
+/* ================================================================
+   Wiki links ([[wikilink]])
+   ================================================================ */
+a.wiki-link {
+    color: var(--accent-teal);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+}
+
+a.wiki-link:hover {
+    text-decoration-style: solid;
+    color: var(--accent-blue);
+}
+
+a.wiki-link.new {
+    color: var(--accent-warm);
+    opacity: 0.7;
+    cursor: help;
+}
+
+a.wiki-link.new:hover {
+    opacity: 1;
+}
+
+/* ================================================================
+   Embed cards (![[embed]])
+   ================================================================ */
+
+/* Internal note embed card */
+.embed-card {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--accent-stone) 25%, var(--bg));
+    border-radius: 8px;
+    background: var(--surface);
+    margin: 0.8rem 0;
+    text-decoration: none;
+    color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.embed-card:hover {
+    border-color: var(--accent-teal);
+    background: color-mix(in srgb, var(--accent-teal) 4%, var(--surface));
+}
+
+.embed-card-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.embed-card-title {
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.embed-card-desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.embed-card-missing {
+    border-color: color-mix(in srgb, var(--accent-warm) 30%, var(--bg));
+    opacity: 0.7;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+/* External web link card */
+.embed-link-card {
+    display: flex;
+    gap: 0;
+    border: 1px solid color-mix(in srgb, var(--accent-stone) 25%, var(--bg));
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--surface);
+    margin: 0.8rem 0;
+    text-decoration: none;
+    color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+    max-height: 120px;
+}
+
+.embed-link-card:hover {
+    border-color: var(--accent-teal);
+    background: color-mix(in srgb, var(--accent-teal) 4%, var(--surface));
+}
+
+.embed-link-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.6rem 0.85rem;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+}
+
+.embed-link-card-title {
+    font-weight: 600;
+    font-size: 0.88rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.embed-link-card-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.embed-link-card-url {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: auto;
+}
+
+.embed-link-card-favicon {
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+}
+
+.embed-link-card-image {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.embed-image {
+    border-radius: 8px;
+    max-width: 100%;
+    height: auto;
+}

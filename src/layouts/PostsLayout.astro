@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "./BaseLayout.astro";
+import GraphView from "../components/GraphView.astro";
 import "../styles/posts.css";
 import { slugifyTag } from "../scripts/content";
 
@@ -32,6 +33,7 @@ interface Props {
   tags: LinkItem[];
   currentPostId?: string;
   headings?: TocHeading[];
+  showGraph?: boolean;
 }
 
 const {
@@ -42,6 +44,7 @@ const {
   tags,
   currentPostId,
   headings = [],
+  showGraph = false,
 } = Astro.props;
 
 const grouped = categories.map((cat) => ({
@@ -50,6 +53,7 @@ const grouped = categories.map((cat) => ({
 }));
 
 const showToc = headings.length > 0;
+const showRight = showToc || showGraph;
 
 // Build hierarchical ToC tree: group h3s under their preceding h2
 interface TocNode {
@@ -71,7 +75,7 @@ headings
 ---
 
 <BaseLayout title={title} description={description}>
-  <section class:list={{ "posts-grid": true, "no-right": !showToc }}>
+  <section class:list={{ "posts-grid": true, "no-right": !showRight }}>
     <aside class="left-panel surface" data-panel="left">
       <section>
         <h2 class="panel-title en">Posts</h2>
@@ -138,35 +142,52 @@ headings
     </article>
 
     {
-      showToc && (
+      showRight && (
         <aside class="right-panel surface" data-panel="right">
-          <h2 class="panel-title en">ToC</h2>
-          <ul class="list-reset toc-tree">
-            {tocTree.map((h2, i) => (
-              <li
-                class={`toc-branch ${i === tocTree.length - 1 ? "last" : ""}`}
-              >
-                {h2.children.length > 0 ? (
-                  <details open>
-                    <summary>
+          {showToc && (
+            <section>
+              <h2 class="panel-title en">ToC</h2>
+              <ul class="list-reset toc-tree">
+                {tocTree.map((h2, i) => (
+                  <li
+                    class={`toc-branch ${i === tocTree.length - 1 ? "last" : ""}`}
+                  >
+                    {h2.children.length > 0 ? (
+                      <details open>
+                        <summary>
+                          <a href={`#${h2.slug}`}>{h2.text}</a>
+                        </summary>
+                        <ul class="list-reset toc-children">
+                          {h2.children.map((h3, j) => (
+                            <li
+                              class={`toc-leaf ${j === h2.children.length - 1 ? "last" : ""}`}
+                            >
+                              <a href={`#${h3.slug}`}>{h3.text}</a>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    ) : (
                       <a href={`#${h2.slug}`}>{h2.text}</a>
-                    </summary>
-                    <ul class="list-reset toc-children">
-                      {h2.children.map((h3, j) => (
-                        <li
-                          class={`toc-leaf ${j === h2.children.length - 1 ? "last" : ""}`}
-                        >
-                          <a href={`#${h3.slug}`}>{h3.text}</a>
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                ) : (
-                  <a href={`#${h2.slug}`}>{h2.text}</a>
-                )}
-              </li>
-            ))}
-          </ul>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {showGraph && (
+            <section>
+              <GraphView
+                posts={posts.map((p) => ({
+                  id: p.id,
+                  title: p.title,
+                  tags: p.tags,
+                  url: p.url,
+                }))}
+                currentPostId={currentPostId}
+              />
+            </section>
+          )}
         </aside>
       )
     }
